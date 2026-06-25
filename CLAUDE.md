@@ -8,13 +8,13 @@ Project context for Claude Code. Read this first every session. Keep the **Statu
 
 A Minecraft VR climbing mod that extends **Vivecraft** so the world becomes physically climbable in roomscale VR. The core fantasy: you read a cliff face, find the holds, and climb it with your hands — the way you would in Mirror's Edge or real bouldering. The terrain dictates where you can move; your skill is reading it.
 
-Two parallel systems make this work:
+Three layers of climbing compose into the movement system:
 
-1. **Grip extension (vanilla blocks).** Certain existing blocks — leaves, logs, vines, and anything tagged — become grippable so you can climb trees and existing foliage naturally. No worldgen needed; this just makes tagged blocks climbable wherever they already occur.
+1. **Natural grip (vanilla blocks via tags).** Leaves, logs, vines, anything tagged. You can climb trees and existing foliage wherever they naturally occur. No worldgen needed.
+2. **Worldgen handholds (custom blocks).** Custom handhold blocks placed by worldgen on *detected cliff faces* — steep/vertical stone surfaces you'd otherwise be unable to scale. These give natural mountains climbable routes.
+3. **Nails (crafted, tiered, player-placed).** The override for "I really need to climb this specific unclimbable face," with a real input-skill component via the pull-direction gesture (see Nail section below).
 
-2. **Worldgen handholds (custom blocks).** Custom handhold blocks are placed by worldgen on *detected cliff faces* — steep/vertical stone surfaces that you'd otherwise be unable to scale. These give natural mountains climbable routes.
-
-**Design rule that defines the whole mod:** smooth surfaces with no holds are *unclimbable*. You cannot climb a bare stone wall. You rely on natural holds (foliage, worldgen handholds) or on nails you place yourself. The constraint is the point — it's what makes climbing feel like a skill rather than a movement toggle.
+**Design rule that defines the whole mod:** smooth surfaces with no holds are *unclimbable*. You cannot climb a bare stone wall. You rely on natural holds, worldgen handholds, or nails you place yourself. The constraint is the point — it's what makes climbing feel like a skill rather than a movement toggle.
 
 ---
 
@@ -28,7 +28,7 @@ Two parallel systems make this work:
 - **Worldgen library:** Lithostitched (match the version shipped in the target pack)
 - **Fabric API:** match pack version (`0.141.4+1.21.11` in pack at time of writing)
 - **Source layout:** split client / common sources (client-only VR code must NOT be referenced from common)
-- **Data generation:** enabled (generate tags, recipes, loot tables, blockstates from code)
+- **Data generation:** enabled (generate tags, recipes, loot tables from code; block models/blockstates use a hybrid approach — see Asset-strategy note)
 
 > Version lock matters because Vivecraft mixin targets are version-specific. A mixin that works on 1.21.11 will not work on a different MC version. Develop against these exact versions.
 
@@ -51,22 +51,62 @@ All three share a "protrudes a few pixels from a parent wall" silhouette. All ar
 | **Rock nub** | Crimp (fingertip edge) | Hard | Small, rounded, asymmetric protrusion |
 | **Vertical seam** | Rail (traverse hold) | Medium | Thin ridge, ~2 blocks tall, for sideways movement |
 
-Start implementation with the **rock nub** — it's the smallest and most representative.
+Started with the **rock nub** — smallest, most representative. The 9-slot multipart pattern that emerged means a fully-filled rock nub block welds into a slab-like surface, which is *intended* (slab outcrop emerges naturally — see Status).
 
 ---
 
-## The nail (the player-placed override)
+## The nail system (the player-placed override)
 
-A craftable item (iron-ish recipe) that the player hammers into a wall to create their own grip point. This is the deliberate, costly override for "I really need to climb this specific unclimbable face" — without dissolving the terrain-is-the-puzzle constraint.
+A craftable item the player hammers into a wall to create their own grip point. Three tiers with distinct purposes — wooden / iron / netherite — each with surface compatibility and durability characteristics. The deliberate, costly override for unclimbable terrain, without dissolving the terrain-is-the-puzzle constraint.
 
-- Placeable on the side of a block; protrudes a few pixels; grippable via the tag system.
-- **Damage-on-retrieval:** the nail has durability (~3 uses). Retrieving it costs 1 durability; it breaks after the limit. Makes placement semi-permanent and forces route planning.
-- **VR pull-out gesture (the signature interaction):** when the controller is near a nail and grip is pressed, check the controller's motion over ~0.5s. If it's pulling *outward* (along the nail's facing direction), retrieve the nail into the hand. If the player just holds, treat it as a climbing grip. This double-purpose grip — *hold to climb, pull to retrieve* — is the kind of thing only VR can do, and it's a tiny prototype of the input-disambiguation work the future VR parkour game will need.
-- Possible later progression (NOT MVP): wooden peg (1 use, breaks on retrieval) / iron nail (3 uses) / permanent piton (expensive, never retrievable).
+### Tier purposes (each tier should have a niche, not just "bigger number")
+
+| Tier | Recipe | Durability cap | Compatible surfaces | Slot in the game |
+|---|---|---|---|---|
+| **Wooden** | 1 stick → 4 nails | 1 use (always breaks on retrieval, ignores pull-direction curve) | stone, cobble, dirt, gravel, sand. **High slip on dirt** (the wall lets go, not the nail breaking) | The scrappy improvisation / scout nail. You leave it behind. |
+| **Iron** | 1 iron ingot → 4 nails | 3–4 uses (damage-on-retrieval, see curve below) | stone, deepslate, granite, andesite, diorite. **Not** obsidian/ancient debris. | The workhorse. What you actually carry up a mountain. |
+| **Netherite** | 1 netherite ingot → 1 nail | 8–10 uses | **everything** — obsidian, ancient debris, the otherwise-unclimbable | Endgame specialist. Lets you climb Nether structures, obsidian pillars. |
+
+**Durability numbers are deliberately low.** The mod's core fantasy is "the cliff is a puzzle, every decision matters." If iron lasts 14 uses the player just carries a stack and stops thinking; if it lasts 3 they make decisions per placement. Start low, raise only if playtest demands.
+
+### Slip-while-gripped is a SEPARATE system from nail durability
+- **Slip** = the *wall* couldn't hold the nail. Wooden/iron in dirt = high slip-per-tick → a few seconds in, the nail pops out of the wall and falls to the base (recoverable item drop). The nail itself is fine.
+- **Damage-on-retrieval** = the *nail* takes a durability hit when the player pulls it back out. Two distinct mechanics that compose: a nail can slip out (no damage), or be pulled out (damage curve below).
+
+### The pull-direction damage curve (the signature VR mechanic)
+
+When the player grips the nail and pulls, sample the controller's motion vector over ~200–300ms. Compute the dot product against the nail's outward facing axis. Use the dot product to drive damage chance:
+
+```
+damage_chance = base_chance + (1.0 - abs(dot(pull_vector, nail_facing))) * scaling
+```
+
+- **Straight pull** (dot ≈ 1.0) → LOW damage chance (~10%). Clean extraction, the path of least resistance. Real physics: pulling a nail straight out doesn't bend the shaft.
+- **Diagonal pull** (dot ≈ 0.5) → MEDIUM (~40%). Some leverage on the shaft.
+- **Sideways pull** (dot ≈ 0.0) → HIGH (~80%). You're bending the nail. Real physics: rocking a nail side-to-side stresses and snaps the shaft.
+
+**Why this curve is the right way around for the game, not just for physics:** straight pulls are *harder to execute in VR* (require positioning your body in front of the wall and pulling cleanly outward), so the more careful/slower motion is also the more rewarding one. Sideways yanks are easier (grab + wrist-flick) → the game rewards patience with preserved durability. Players learn the mechanic by failing it once: yank → nail breaks → next time they pull straight. No tooltip needed.
+
+`base_chance` and `scaling` are per-tier (wooden ignores the curve — it always breaks on retrieval).
+
+### VR placement & retrieval gesture
+- **Placement:** standard right-click-with-item — places the nail block at the empty cell adjacent to the clicked face, facing outward. Same `getPlacementState` pattern as the rock nub (FACING = `ctx.getSide()`; no manual position offset).
+- **Retrieval:** the *signature VR interaction.* When the controller is near a placed nail and grip is pressed, watch the motion vector for ~0.5s. If it has significant outward magnitude along the nail's facing axis, retrieve the nail into the hand and apply the damage curve above. If the player just holds without pulling, treat it as a climbing grip. **Hold to climb, pull to retrieve** — input-disambiguation only VR allows. This is a tiny prototype of the same gesture work the future VR parkour game will need.
+
+### Nail implementation order (when we get there)
+1. **Iron nail first.** Single tier, basic damage-on-retrieval (fixed % — NOT yet gesture-aware). Gets placement, retrieval, durability working end to end.
+2. **Add the gesture-direction damage curve to the iron nail.** This is the genuinely new VR work and worth landing as its own milestone.
+3. **Wooden + netherite as variants.** Once iron works, these are mostly data changes (durability cap, recipe, surface tag set).
+4. **Surface compatibility tags last.** Once all three nails exist, define which surfaces each can grip.
+
+Ending at step 2 still ships a satisfying mod. Steps 3–4 are pure expansion.
+
+### Possible later extensions (NOT MVP)
+- **Climbing chalk bag** or equivalent: stat bonus item that slightly reduces damage chance / slip rate. Natural extension if the core nail loop feels good.
 
 ---
 
-## Tag + slip system
+## Tag + slip system (climbable blocks)
 
 Climbable blocks are defined by tags so the mod (and other datapacks) can contribute:
 
@@ -76,6 +116,8 @@ Climbable blocks are defined by tags so the mod (and other datapacks) can contri
 **Slip mechanic:** a per-block slip *chance per tick* while gripped, stored in a data-driven registry (JSON mapping block id → slip value). Leaves ≈ 0%, slab outcrop low, vertical seam medium, rock nub highest. Combined with Vivecraft's existing "hold sneak to not fall when you let go," this gives a difficulty curve without a full stamina system. **Do NOT build stamina/XP/fatigue for MVP.**
 
 Block-shape communicates difficulty visually (jug/crimp/sloper vocabulary), so players read routes without a tutorial.
+
+The slip registry is **shared infrastructure** between the climbable-block system and the nail system's wall-grip-slip behavior — same per-block-id lookup; same data file. A wooden nail "slipping out of dirt" is implemented as the dirt block having a high slip value when the gripped item is a low-tier nail.
 
 ---
 
@@ -98,15 +140,19 @@ Block-shape communicates difficulty visually (jug/crimp/sloper vocabulary), so p
 
 - Fabric mod, MC 1.21.11, deps: Vivecraft, Lithostitched, Fabric API.
 - **One mixin** into Vivecraft's climbable-block check that also consults our `handhold`/`weak_handhold` tags. (~small; this is the climbing hookup.)
-- **Data-driven slip registry** (block id → slip-per-tick).
-- **Three custom blocks** (directional, partial collision, waterloggable, tinted variants) + **the nail item**.
+- **Data-driven slip registry** (block id → slip-per-tick) — shared by climbing and nail-wall-slip.
+- **Three custom handhold blocks** (directional, partial collision, waterloggable, tinted variants) + **the nail items** (three tiers).
 - **Worldgen as Lithostitched JSON** + a custom cliff-detection predicate.
-- **Block/item tags, recipes, loot tables via datagen.**
-- VR-specific code (gesture detection, grip handling) lives in `src/client/` ONLY.
+- **Block/item tags, recipes, loot tables via datagen.** Block models/blockstates via a hybrid approach (see Asset-strategy note in Status).
+- VR-specific code (gesture detection, grip handling, pull-direction sampling) lives in `src/client/` ONLY.
 
 ### Decisions already made
-- Java, not Kotlin. Yarn mappings. Split sources. Datagen on.
-- Handholds are worldgen-only (not craftable). The nail is the player override.
+- Java, not Kotlin. Yarn mappings. Split sources. Datagen on (loot/recipes/tags).
+- Block models + blockstates for custom-geometry blocks are hand-authored / script-generated, not Fabric datagen (model-gen API is verbose/volatile in 1.21.11; vanilla model templates can't express the geometry).
+- Handhold blocks are worldgen-only (not craftable). Nails are the craftable player override.
+- Nails are tiered (wooden/iron/netherite), not a single item.
+- Nail damage uses a continuous pull-direction curve (straight = safe, sideways = breaks), NOT a flat % chance.
+- Slip-while-gripped and damage-on-retrieval are two separate mechanics.
 - No stamina/XP/fatigue systems in MVP.
 - Build worldgen on Lithostitched (already in pack), not raw Fabric biome APIs.
 
@@ -117,20 +163,23 @@ Block-shape communicates difficulty visually (jug/crimp/sloper vocabulary), so p
 - Explanations go **above or below** code blocks, not as inline comments. Include the *reasoning* behind syntax/API choices (this is a learning project as much as a shipping one).
 - Keep the mod id `climbamountainvr` consistent across `gradle.properties`, `fabric.mod.json`, and the Java package. **Mod id is permanent** — renaming it breaks existing world saves (every placed block reference changes).
 - Small, testable vertical slices. Prefer "register one block, see it in-game" over "build the whole block system then test."
+- When stuck on a volatile/verbose API (model generators, datagen builders), don't fight it — fall back to hand-authored or script-generated assets and document the deviation. The model-gen Python script for the rock nub is the reference pattern.
 
 ---
 
 ## How to test
 - `./gradlew runClient` launches a dev Minecraft with the mod loaded. The task sits at ~92% the whole time Minecraft is open — that's normal; it completes when the game closes. Close the game window normally (don't Ctrl+C the Gradle process — it orphans Java processes).
 - Verify mod loads via the Mods menu (Mod Menu is in the template).
-- For climbing/gesture work, you must actually test in VR on the dev machine — feel can't be unit-tested.
+- For climbing/gesture work, you must actually test in VR on the dev machine — feel can't be unit-tested. Specifically: the nail pull-direction damage curve and the grip-vs-pull disambiguation cannot be tuned without a headset.
 
 ---
 
 ## Scope
-~9–12 weeks of evening work (Solum-scale). Time distribution: grip extension (1wk) · 3 custom blocks (2wk) · cliff detection iteration (1–2wk) · worldgen route placement (1–2wk) · nail + VR gesture (1wk) · recipes/config/tags/polish (1wk) · ongoing pack testing.
+~9–12 weeks of evening work (Solum-scale). Time distribution: grip extension (1wk) · 3 custom handhold blocks (2wk) · cliff detection iteration (1–2wk) · worldgen route placement (1–2wk) · nail system 3 tiers + VR gesture (2wk) · recipes/config/tags/polish (1wk) · ongoing pack testing.
 
-This is deliberate prep for a future VR parkour game (grip-based traversal, handhold placement, affordance design) — solved in a forgiving sandbox where engine/physics/multiplayer already work.
+Three-tier nail system adds ~1 week over a single-tier (mostly data — durability values, surface-compat tags, item textures, recipes). The pull-direction gesture damage curve is the real new work (~3–4 days + iteration).
+
+This is deliberate prep for a future VR parkour game (grip-based traversal, handhold placement, affordance design, input-disambiguation) — solved in a forgiving sandbox where engine/physics/multiplayer already work.
 
 ---
 
@@ -169,7 +218,9 @@ Confirmed too: split client/common source sets ARE set up (`splitEnvironmentSour
 - [ ] Add Vivecraft + Lithostitched as dependencies (needs a registry/maven lookup; nothing added to `build.gradle` yet).
 - [ ] Generalize the rock-nub pattern to slab outcrop + vertical seam (reuse `ModBlocks.register`; the slab outcrop can lean on the slab-on-fill emergence noted above).
 - [ ] (Polish, deferred) drops-per-nub + single-nub removal from a cluster.
+- [ ] Nail system (after Vivecraft hookup): start with iron nail flat damage % → add gesture-direction curve → add wooden/netherite as data variants → surface-compat tags last. See Nail section.
 
 **Open questions / parked:**
-- Exact cliff-detection thresholds (tune in-game against Tectonic)
-- Whether to ship a Voxy-cache-rebuild note or an existing-world rescan tool (rescan is +1–2wk, defer)
+- Exact cliff-detection thresholds (tune in-game against Tectonic).
+- Whether to ship a Voxy-cache-rebuild note or an existing-world rescan tool (rescan is +1–2wk, defer).
+- Whether to add the optional climbing-chalk-bag stat item after nail loop is in (deferred until nails feel good).
