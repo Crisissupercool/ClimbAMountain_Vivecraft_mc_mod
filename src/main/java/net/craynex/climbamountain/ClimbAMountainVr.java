@@ -1,7 +1,10 @@
 package net.craynex.climbamountain;
 
+import net.craynex.climbamountain.block.ModBlocks;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 
+import net.minecraft.item.ItemGroups;
 import net.minecraft.util.Identifier;
 
 import org.slf4j.Logger;
@@ -20,6 +23,12 @@ public class ClimbAMountainVr implements ModInitializer {
 		// This code runs as soon as Minecraft is in a mod-load-ready state.
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
+
+		ModBlocks.initialize();
+
+		ItemGroupEvents.modifyEntriesEvent(ItemGroups.NATURAL).register(entries -> {
+			entries.add(ModBlocks.ROCK_NUB);
+		});
 
 		LOGGER.info("Climb A Mountain initialized");
 	}

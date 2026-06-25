@@ -1,0 +1,355 @@
+{
+	"multipart": [
+		{
+			"when": {
+				"facing": "north",
+				"slot_0_0": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h0_v0"
+			}
+		},
+		{
+			"when": {
+				"facing": "north",
+				"slot_0_1": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h0_v1"
+			}
+		},
+		{
+			"when": {
+				"facing": "north",
+				"slot_0_2": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h0_v2"
+			}
+		},
+		{
+			"when": {
+				"facing": "north",
+				"slot_1_0": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h1_v0"
+			}
+		},
+		{
+			"when": {
+				"facing": "north",
+				"slot_1_1": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h1_v1"
+			}
+		},
+		{
+			"when": {
+				"facing": "north",
+				"slot_1_2": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h1_v2"
+			}
+		},
+		{
+			"when": {
+				"facing": "north",
+				"slot_2_0": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h2_v0"
+			}
+		},
+		{
+			"when": {
+				"facing": "north",
+				"slot_2_1": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h2_v1"
+			}
+		},
+		{
+			"when": {
+				"facing": "north",
+				"slot_2_2": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h2_v2"
+			}
+		},
+		{
+			"when": {
+				"facing": "east",
+				"slot_0_0": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h0_v0",
+				"y": 90
+			}
+		},
+		{
+			"when": {
+				"facing": "east",
+				"slot_0_1": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h0_v1",
+				"y": 90
+			}
+		},
+		{
+			"when": {
+				"facing": "east",
+				"slot_0_2": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h0_v2",
+				"y": 90
+			}
+		},
+		{
+			"when": {
+				"facing": "east",
+				"slot_1_0": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h1_v0",
+				"y": 90
+			}
+		},
+		{
+			"when": {
+				"facing": "east",
+				"slot_1_1": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h1_v1",
+				"y": 90
+			}
+		},
+		{
+			"when": {
+				"facing": "east",
+				"slot_1_2": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h1_v2",
+				"y": 90
+			}
+		},
+		{
+			"when": {
+				"facing": "east",
+				"slot_2_0": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h2_v0",
+				"y": 90
+			}
+		},
+		{
+			"when": {
+				"facing": "east",
+				"slot_2_1": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h2_v1",
+				"y": 90
+			}
+		},
+		{
+			"when": {
+				"facing": "east",
+				"slot_2_2": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h2_v2",
+				"y": 90
+			}
+		},
+		{
+			"when": {
+				"facing": "south",
+				"slot_0_0": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h0_v0",
+				"y": 180
+			}
+		},
+		{
+			"when": {
+				"facing": "south",
+				"slot_0_1": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h0_v1",
+				"y": 180
+			}
+		},
+		{
+			"when": {
+				"facing": "south",
+				"slot_0_2": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h0_v2",
+				"y": 180
+			}
+		},
+		{
+			"when": {
+				"facing": "south",
+				"slot_1_0": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h1_v0",
+				"y": 180
+			}
+		},
+		{
+			"when": {
+				"facing": "south",
+				"slot_1_1": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h1_v1",
+				"y": 180
+			}
+		},
+		{
+			"when": {
+				"facing": "south",
+				"slot_1_2": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h1_v2",
+				"y": 180
+			}
+		},
+		{
+			"when": {
+				"facing": "south",
+				"slot_2_0": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h2_v0",
+				"y": 180
+			}
+		},
+		{
+			"when": {
+				"facing": "south",
+				"slot_2_1": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h2_v1",
+				"y": 180
+			}
+		},
+		{
+			"when": {
+				"facing": "south",
+				"slot_2_2": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h2_v2",
+				"y": 180
+			}
+		},
+		{
+			"when": {
+				"facing": "west",
+				"slot_0_0": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h0_v0",
+				"y": 270
+			}
+		},
+		{
+			"when": {
+				"facing": "west",
+				"slot_0_1": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h0_v1",
+				"y": 270
+			}
+		},
+		{
+			"when": {
+				"facing": "west",
+				"slot_0_2": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h0_v2",
+				"y": 270
+			}
+		},
+		{
+			"when": {
+				"facing": "west",
+				"slot_1_0": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h1_v0",
+				"y": 270
+			}
+		},
+		{
+			"when": {
+				"facing": "west",
+				"slot_1_1": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h1_v1",
+				"y": 270
+			}
+		},
+		{
+			"when": {
+				"facing": "west",
+				"slot_1_2": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h1_v2",
+				"y": 270
+			}
+		},
+		{
+			"when": {
+				"facing": "west",
+				"slot_2_0": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h2_v0",
+				"y": 270
+			}
+		},
+		{
+			"when": {
+				"facing": "west",
+				"slot_2_1": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h2_v1",
+				"y": 270
+			}
+		},
+		{
+			"when": {
+				"facing": "west",
+				"slot_2_2": "true"
+			},
+			"apply": {
+				"model": "climbamountainvr:block/rock_nub_h2_v2",
+				"y": 270
+			}
+		}
+	]
+}

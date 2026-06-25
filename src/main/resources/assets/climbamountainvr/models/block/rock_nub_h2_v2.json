@@ -1,0 +1,77 @@
+{
+	"parent": "block/block",
+	"textures": {
+		"nub": "climbamountainvr:block/rock_nub",
+		"particle": "climbamountainvr:block/rock_nub"
+	},
+	"elements": [
+		{
+			"from": [
+				10,
+				9,
+				12
+			],
+			"to": [
+				14,
+				14,
+				16
+			],
+			"faces": {
+				"north": {
+					"uv": [
+						10,
+						2,
+						14,
+						7
+					],
+					"texture": "#nub"
+				},
+				"south": {
+					"uv": [
+						10,
+						2,
+						14,
+						7
+					],
+					"texture": "#nub"
+				},
+				"east": {
+					"uv": [
+						12,
+						2,
+						16,
+						7
+					],
+					"texture": "#nub"
+				},
+				"west": {
+					"uv": [
+						12,
+						2,
+						16,
+						7
+					],
+					"texture": "#nub"
+				},
+				"up": {
+					"uv": [
+						10,
+						12,
+						14,
+						16
+					],
+					"texture": "#nub"
+				},
+				"down": {
+					"uv": [
+						10,
+						12,
+						14,
+						16
+					],
+					"texture": "#nub"
+				}
+			}
+		}
+	]
+}
