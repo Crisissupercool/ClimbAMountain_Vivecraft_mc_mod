@@ -140,6 +140,7 @@ The slip registry is **shared infrastructure** between the climbable-block syste
 
 - Fabric mod, MC 1.21.11, deps: Vivecraft, Lithostitched, Fabric API.
 - **One mixin** into Vivecraft's climbable-block check that also consults our `handhold`/`weak_handhold` tags. (~small; this is the climbing hookup.)
+  - **Hook target is Vivecraft's *core* climbable-block check — NOT a Climbey-style equipment-gated whitelist.** Climbey only lets you grip when you're holding its climbing claws (an item gate); Vivecraft makes the world itself climbable based on the block, which is exactly the "terrain is the puzzle" model this mod wants. So we extend the block-level decision (does *this block* afford a grip?) rather than an item/equipment check. The **Vivecraft Origins Compatibility Fork** is the reference for how to hook this check cleanly.
 - **Data-driven slip registry** (block id → slip-per-tick) — shared by climbing and nail-wall-slip.
 - **Three custom handhold blocks** (directional, partial collision, waterloggable, tinted variants) + **the nail items** (three tiers).
 - **Worldgen as Lithostitched JSON** + a custom cliff-detection predicate.
@@ -185,7 +186,7 @@ This is deliberate prep for a future VR parkour game (grip-based traversal, hand
 
 ## STATUS (update this every session)
 
-**Current state:** First vertical slice built AND verified in-game (`runClient`) — the **rock nub** block works: places on all four walls facing outward, 3×3 aim-based positioning, multi-nub clusters, collision + waterlogging confirmed. Compiles (common + client); datagen runs and emits the loot table. Climbing/grip NOT wired yet (needs Vivecraft dep, separate task). Build/run is healthy on this machine.
+**Current state:** First vertical slice built AND verified in-game (`runClient`) — the **rock nub** block works: places on all four walls facing outward, 3×3 aim-based positioning, multi-nub clusters, collision + waterlogging confirmed. Compiles (common + client); datagen runs and emits the loot table AND the two block tags. **Block-tag scaffolding now exists** — `climbamountainvr:handhold` + `climbamountainvr:weak_handhold` are datagenned (see Tag scaffolding note below); these are the tags the future Vivecraft mixin will consult. Climbing/grip NOT wired yet (needs Vivecraft dep, separate task). Build/run is healthy on this machine.
 
 **How to pick up cold (laptop⇄PC):** the rock nub is the reference pattern — read `block/RockNubBlock.java` + `scripts/gen_rock_nub_models.py` first. To run: `./gradlew runClient`. To regenerate models/blockstate after geometry edits: `python scripts/gen_rock_nub_models.py`. Mappings source of truth for API names: `~/.gradle/caches/fabric-loom/1.21.11/.../mappings.tiny`.
 
@@ -203,6 +204,13 @@ This is deliberate prep for a future VR parkour game (grip-based traversal, hand
 
 **Asset-strategy note (user-approved hybrid):** custom protruding geometry can't be expressed by vanilla model templates and the 1.21.11 `BlockStateModelGenerator` builder API is verbose/volatile, so block models + the multipart blockstate are emitted by a standalone Python script (`scripts/gen_rock_nub_models.py`) and Fabric datagen is used only for the loot table. Revisit whether to fold model-gen into Fabric datagen when adding the slab outcrop / vertical seam.
 
+**Tag scaffolding note (block tags — built + datagen-clean):**
+- **TagKeys live in common, the provider lives in client.** `tag/ModBlockTags.java` (common, `src/main/`) defines `HANDHOLD` + `WEAK_HANDHOLD` as `TagKey<Block>` via `TagKey.of(RegistryKeys.BLOCK, id(...))`. They're in common deliberately — the future Vivecraft climbable-block mixin (also common) must reference the same keys; the datagen provider only *populates* the tags, it can't *own* the keys.
+- **Provider:** `client/datagen/ModBlockTagProvider.java` extends `FabricTagProvider.BlockTagProvider` (the Block subclass pre-wires `RegistryKeys.BLOCK` + the value→key function and pins output to the `tags/block/` dir). Override is `configure(RegistryWrapper.WrapperLookup)`; add entries via `valueLookupBuilder(TAG).add(Block).addOptionalTag(TagKey)`. Wired into `ClimbAMountainVrDataGenerator` next to the loot provider.
+- **Contents:** `handhold` = `vine`, `cave_vines`, `cave_vines_plant`, `weeping_vines`, `twisting_vines`, + `#minecraft:leaves` (tag-of-tags). `weak_handhold` = `rock_nub`.
+- **GOTCHA — referencing a vanilla tag must be `addOptionalTag`, NOT `addTag`.** At datagen time the validator only knows the tags THIS run generates plus registry *entries* — it has no vanilla tag *contents* loaded, so a hard `addTag(#minecraft:leaves)` aborts with "missing following references: #minecraft:leaves". `addOptionalTag` emits the same reference marked `"required": false`, skipping the presence-check; in-game result is identical because `#minecraft:leaves` always exists. (Output: `src/main/generated/data/climbamountainvr/tags/block/{handhold,weak_handhold}.json`.)
+- **In-game verification:** F3 debug screen's targeted-block panel lists a block's tags with `#` prefix (a debug stick shows blockstate *properties*, not tags). Tags load on **world load**, not at the title screen.
+
 **API gotchas learned (1.21.11-specific):** blocks override `getCodec()` returning a `MapCodec`; blocks+items require `RegistryKey` in `Settings`; model generators live in `net.minecraft.client.data`; `FabricModelProvider` moved to the `api.client.datagen.v1.provider` package; every item needs an `assets/<ns>/items/<name>.json` model definition (new item-model system); sub-block positioning is done with `BooleanProperty` slots + a **multipart** blockstate (variants can only rotate, never translate, a model); "place several in one cell" uses `canReplace` + `getPlacementState` reading the existing block (candle pattern), with the aimed sub-slot from `ItemPlacementContext.getHitPos()`. Mappings source of truth: `~/.gradle/caches/fabric-loom/1.21.11/.../mappings.tiny`.
 
 **Verify on first session:**
@@ -214,7 +222,7 @@ Confirmed too: split client/common source sets ARE set up (`splitEnvironmentSour
 
 **Next up:**
 - [x] Rock nub built + verified in-game (places on all 4 walls, 3×3 aim positioning, multi-nub clusters, collision, waterlogging).
-- [ ] Block tag scaffolding (`handhold`, `weak_handhold`) — datagen the tag JSONs. **Likely the next slice.**
+- [x] Block tag scaffolding (`handhold`, `weak_handhold`) — datagenned tag JSONs (`client/datagen/ModBlockTagProvider`, keys in `tag/ModBlockTags`). Generated + datagen-clean; verify in-game via F3 block-tag panel.
 - [ ] Add Vivecraft + Lithostitched as dependencies (needs a registry/maven lookup; nothing added to `build.gradle` yet).
 - [ ] Generalize the rock-nub pattern to slab outcrop + vertical seam (reuse `ModBlocks.register`; the slab outcrop can lean on the slab-on-fill emergence noted above).
 - [ ] (Polish, deferred) drops-per-nub + single-nub removal from a cluster.

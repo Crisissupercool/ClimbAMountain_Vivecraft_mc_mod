@@ -1,0 +1,53 @@
+package net.craynex.climbamountain.client.datagen;
+
+import java.util.concurrent.CompletableFuture;
+
+import net.craynex.climbamountain.block.ModBlocks;
+import net.craynex.climbamountain.tag.ModBlockTags;
+import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
+import net.minecraft.block.Blocks;
+import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.registry.tag.BlockTags;
+
+// We extend FabricTagProvider.BlockTagProvider rather than the raw FabricTagProvider:
+// the Block subclass pre-wires the registry (RegistryKeys.BLOCK) and the value->key
+// function, so we get a value-lookup builder and can add Block instances directly
+// (Blocks.VINE) instead of spelling out RegistryKeys. It also pins the output to the
+// "tags/block" directory automatically — no manual path wiring.
+//
+// The two-arg constructor (output + registriesFuture) is the only contract the parent
+// requires; Fabric hands both in when it instantiates the provider via the ::new
+// reference we register in the datagen entrypoint.
+public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
+	public ModBlockTagProvider(FabricDataOutput output,
+			CompletableFuture<RegistryWrapper.WrapperLookup> registriesFuture) {
+		super(output, registriesFuture);
+	}
+
+	@Override
+	protected void configure(RegistryWrapper.WrapperLookup wrapperLookup) {
+		valueLookupBuilder(ModBlockTags.HANDHOLD)
+				.add(Blocks.VINE)
+				.add(Blocks.CAVE_VINES)
+				.add(Blocks.CAVE_VINES_PLANT)
+				.add(Blocks.WEEPING_VINES)
+				.add(Blocks.TWISTING_VINES)
+				.addOptionalTag(BlockTags.LEAVES);
+
+		valueLookupBuilder(ModBlockTags.WEAK_HANDHOLD)
+				.add(ModBlocks.ROCK_NUB);
+	}
+}
+// addOptionalTag(BlockTags.LEAVES) is the tag-of-tags pattern: instead of listing every
+// leaf block (oak/birch/azalea/cherry/etc., a list that grows every MC version), we
+// reference the vanilla #minecraft:leaves tag, so any leaf — vanilla or added by another
+// datapack — is automatically a handhold. add(Block) by contrast inlines a single block id.
+//
+// It must be addOptionalTag, NOT addTag: at datagen time the validator only knows the tags
+// THIS run generates plus the registry's entries — it does not have vanilla tag *contents*
+// loaded, so a hard addTag(#minecraft:leaves) is flagged as a dangling reference and aborts
+// generation. addOptionalTag emits the same "#minecraft:leaves" entry but marked
+// "required": false, which skips that presence-check. Since #minecraft:leaves always exists
+// at runtime, the in-game result is identical — "required: false" only matters in the
+// (impossible for a vanilla tag) case where the referenced tag is absent.
