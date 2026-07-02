@@ -1,2 +1,4 @@
 // 1.21.11	-999999999-01-01T00:00:00	ClimbAMountainVr/Block Loot Tables
 264ee68806b1bf00677894bc49921091cf24ca9c data/climbamountainvr/loot_table/blocks/rock_nub.json
+bf43778ce6d5e1c6ed51fd1126eeaf60b954723f data/climbamountainvr/loot_table/blocks/slab_outcrop.json
+a6dfc270219a70ca2727e0c7ec4b863ed0566809 data/climbamountainvr/loot_table/blocks/vertical_seam.json

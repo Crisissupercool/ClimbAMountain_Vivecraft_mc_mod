@@ -1,0 +1,49 @@
+{
+	"variants": {
+		"facing=north,column=0": {
+			"model": "climbamountainvr:block/vertical_seam_c0"
+		},
+		"facing=north,column=1": {
+			"model": "climbamountainvr:block/vertical_seam_c1"
+		},
+		"facing=north,column=2": {
+			"model": "climbamountainvr:block/vertical_seam_c2"
+		},
+		"facing=east,column=0": {
+			"model": "climbamountainvr:block/vertical_seam_c0",
+			"y": 90
+		},
+		"facing=east,column=1": {
+			"model": "climbamountainvr:block/vertical_seam_c1",
+			"y": 90
+		},
+		"facing=east,column=2": {
+			"model": "climbamountainvr:block/vertical_seam_c2",
+			"y": 90
+		},
+		"facing=south,column=0": {
+			"model": "climbamountainvr:block/vertical_seam_c0",
+			"y": 180
+		},
+		"facing=south,column=1": {
+			"model": "climbamountainvr:block/vertical_seam_c1",
+			"y": 180
+		},
+		"facing=south,column=2": {
+			"model": "climbamountainvr:block/vertical_seam_c2",
+			"y": 180
+		},
+		"facing=west,column=0": {
+			"model": "climbamountainvr:block/vertical_seam_c0",
+			"y": 270
+		},
+		"facing=west,column=1": {
+			"model": "climbamountainvr:block/vertical_seam_c1",
+			"y": 270
+		},
+		"facing=west,column=2": {
+			"model": "climbamountainvr:block/vertical_seam_c2",
+			"y": 270
+		}
+	}
+}

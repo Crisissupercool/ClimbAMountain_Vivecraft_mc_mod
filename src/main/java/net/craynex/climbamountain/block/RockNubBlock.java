@@ -9,27 +9,23 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.HorizontalFacingBlock;
 import net.minecraft.block.ShapeContext;
-import net.minecraft.block.Waterloggable;
-import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.BlockMirror;
-import net.minecraft.util.BlockRotation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 
-public class RockNubBlock extends HorizontalFacingBlock implements Waterloggable {
+// The shared wall-hold conventions (FACING = ctx.getSide(), NORTH-authored boxes
+// rotated by rotateBoxY, waterlogging, aim-slot math) live in AbstractWallHoldBlock;
+// this class adds what is nub-specific: the 3x3 boolean slot grid and the
+// merge-into-existing-cluster placement (candle/sea-pickle pattern).
+public class RockNubBlock extends AbstractWallHoldBlock {
 	public static final MapCodec<RockNubBlock> CODEC = createCodec(RockNubBlock::new);
-
-	public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
 
 	// One boolean per 3x3 grid slot. A single block holds any subset of these, so
 	// up to nine nubs share a cell -- the same trick candles/sea pickles use to put
@@ -152,70 +148,9 @@ public class RockNubBlock extends HorizontalFacingBlock implements Waterloggable
 				.with(SLOTS[h][v], true);
 	}
 
-	// Which 3x3 slot the player's crosshair is pointing at, in face-local terms.
-	// Vertical is always world Y; horizontal is world X (north/south walls) or world
-	// Z (east/west). We match the hit fraction to the nub's WORLD position, so the
-	// +axis walls (south/west) mirror the column with (2 - slot) -- see makeShapes.
-	private int[] aimedSlot(ItemPlacementContext ctx, Direction facing) {
-		Vec3d hit = ctx.getHitPos();
-		double fx = hit.x - Math.floor(hit.x);
-		double fy = hit.y - Math.floor(hit.y);
-		double fz = hit.z - Math.floor(hit.z);
-
-		int v = slot(fy);
-		int h;
-		if (facing == Direction.NORTH) {
-			h = slot(fx);
-		} else if (facing == Direction.SOUTH) {
-			h = 2 - slot(fx);
-		} else if (facing == Direction.EAST) {
-			h = slot(fz);
-		} else {
-			h = 2 - slot(fz);
-		}
-		return new int[] { h, v };
-	}
-
-	@Override
-	protected FluidState getFluidState(BlockState state) {
-		return state.get(WATERLOGGED) ? Fluids.WATER.getStill(false) : super.getFluidState(state);
-	}
-
-	@Override
-	protected BlockState rotate(BlockState state, BlockRotation rotation) {
-		return state.with(FACING, rotation.rotate(state.get(FACING)));
-	}
-
-	@Override
-	protected BlockState mirror(BlockState state, BlockMirror mirror) {
-		return state.rotate(mirror.getRotation(state.get(FACING)));
-	}
-
-	private static int slot(double fraction) {
-		int i = (int) (fraction * 3.0);
-		if (i < 0) {
-			return 0;
-		}
-		if (i > 2) {
-			return 2;
-		}
-		return i;
-	}
-
-	private static int facingIndex(Direction facing) {
-		return switch (facing) {
-			case NORTH -> 0;
-			case SOUTH -> 1;
-			case WEST -> 2;
-			case EAST -> 3;
-			default -> 0;
-		};
-	}
-
 	// The 3x3 of base boxes is authored for FACING=NORTH (wall on +Z, box hugging
-	// z=16 and protruding to z=12). Every other facing reuses these boxes, rotated
-	// around the cell centre by the same y-rotation the blockstate applies to the
-	// model -- so collision and visuals can never drift apart.
+	// z=16 and protruding to z=12); other facings via rotateBoxY, matching the
+	// blockstate y-rotation. Keep dims EQUAL to scripts/gen_rock_nub_models.py.
 	private static VoxelShape[][][] makeShapes() {
 		double depth = 4.0;
 		double[] yBottom = { 1.0, 5.0, 9.0 };
@@ -237,14 +172,5 @@ public class RockNubBlock extends HorizontalFacingBlock implements Waterloggable
 		}
 
 		return shapes;
-	}
-
-	private static VoxelShape rotateBoxY(Box b, Direction facing) {
-		return switch (facing) {
-			case EAST -> VoxelShapes.cuboid(1.0 - b.maxZ, b.minY, b.minX, 1.0 - b.minZ, b.maxY, b.maxX);
-			case SOUTH -> VoxelShapes.cuboid(1.0 - b.maxX, b.minY, 1.0 - b.maxZ, 1.0 - b.minX, b.maxY, 1.0 - b.minZ);
-			case WEST -> VoxelShapes.cuboid(b.minZ, b.minY, 1.0 - b.maxX, b.maxZ, b.maxY, 1.0 - b.minX);
-			default -> VoxelShapes.cuboid(b.minX, b.minY, b.minZ, b.maxX, b.maxY, b.maxZ);
-		};
 	}
 }

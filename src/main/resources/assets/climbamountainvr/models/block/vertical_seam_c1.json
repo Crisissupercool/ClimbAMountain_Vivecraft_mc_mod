@@ -1,0 +1,77 @@
+{
+	"parent": "block/block",
+	"textures": {
+		"seam": "climbamountainvr:block/vertical_seam",
+		"particle": "climbamountainvr:block/vertical_seam"
+	},
+	"elements": [
+		{
+			"from": [
+				6,
+				0,
+				13
+			],
+			"to": [
+				10,
+				16,
+				16
+			],
+			"faces": {
+				"north": {
+					"uv": [
+						6,
+						0,
+						10,
+						16
+					],
+					"texture": "#seam"
+				},
+				"south": {
+					"uv": [
+						6,
+						0,
+						10,
+						16
+					],
+					"texture": "#seam"
+				},
+				"east": {
+					"uv": [
+						13,
+						0,
+						16,
+						16
+					],
+					"texture": "#seam"
+				},
+				"west": {
+					"uv": [
+						13,
+						0,
+						16,
+						16
+					],
+					"texture": "#seam"
+				},
+				"up": {
+					"uv": [
+						6,
+						13,
+						10,
+						16
+					],
+					"texture": "#seam"
+				},
+				"down": {
+					"uv": [
+						6,
+						13,
+						10,
+						16
+					],
+					"texture": "#seam"
+				}
+			}
+		}
+	]
+}

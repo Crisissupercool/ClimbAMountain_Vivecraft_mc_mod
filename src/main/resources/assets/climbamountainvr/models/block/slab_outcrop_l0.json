@@ -1,0 +1,77 @@
+{
+	"parent": "block/block",
+	"textures": {
+		"ledge": "climbamountainvr:block/slab_outcrop",
+		"particle": "climbamountainvr:block/slab_outcrop"
+	},
+	"elements": [
+		{
+			"from": [
+				1,
+				1,
+				11
+			],
+			"to": [
+				15,
+				4,
+				16
+			],
+			"faces": {
+				"north": {
+					"uv": [
+						1,
+						12,
+						15,
+						15
+					],
+					"texture": "#ledge"
+				},
+				"south": {
+					"uv": [
+						1,
+						12,
+						15,
+						15
+					],
+					"texture": "#ledge"
+				},
+				"east": {
+					"uv": [
+						11,
+						12,
+						16,
+						15
+					],
+					"texture": "#ledge"
+				},
+				"west": {
+					"uv": [
+						11,
+						12,
+						16,
+						15
+					],
+					"texture": "#ledge"
+				},
+				"up": {
+					"uv": [
+						1,
+						11,
+						15,
+						16
+					],
+					"texture": "#ledge"
+				},
+				"down": {
+					"uv": [
+						1,
+						11,
+						15,
+						16
+					],
+					"texture": "#ledge"
+				}
+			}
+		}
+	]
+}

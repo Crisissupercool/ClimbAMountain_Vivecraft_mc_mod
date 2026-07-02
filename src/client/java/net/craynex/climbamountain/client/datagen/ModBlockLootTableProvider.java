@@ -16,5 +16,7 @@ public class ModBlockLootTableProvider extends FabricBlockLootTableProvider {
 	@Override
 	public void generate() {
 		addDrop(ModBlocks.ROCK_NUB);
+		addDrop(ModBlocks.SLAB_OUTCROP);
+		addDrop(ModBlocks.VERTICAL_SEAM);
 	}
 }

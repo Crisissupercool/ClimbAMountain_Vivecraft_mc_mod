@@ -28,6 +28,8 @@ public class ClimbAMountainVr implements ModInitializer {
 
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.NATURAL).register(entries -> {
 			entries.add(ModBlocks.ROCK_NUB);
+			entries.add(ModBlocks.SLAB_OUTCROP);
+			entries.add(ModBlocks.VERTICAL_SEAM);
 		});
 
 		LOGGER.info("Climb A Mountain initialized");

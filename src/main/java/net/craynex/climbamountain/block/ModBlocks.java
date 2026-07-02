@@ -5,7 +5,6 @@ import java.util.function.Function;
 import net.craynex.climbamountain.ClimbAMountainVr;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
 import net.minecraft.block.MapColor;
 import net.minecraft.block.piston.PistonBehavior;
 import net.minecraft.item.BlockItem;
@@ -24,6 +23,30 @@ public final class ModBlocks {
 	public static final Block ROCK_NUB = register(
 			"rock_nub",
 			RockNubBlock::new,
+			AbstractBlock.Settings.create()
+					.mapColor(MapColor.STONE_GRAY)
+					.strength(1.5F, 6.0F)
+					.requiresTool()
+					.nonOpaque()
+					.sounds(BlockSoundGroup.STONE)
+					.pistonBehavior(PistonBehavior.DESTROY),
+			true);
+
+	public static final Block SLAB_OUTCROP = register(
+			"slab_outcrop",
+			SlabOutcropBlock::new,
+			AbstractBlock.Settings.create()
+					.mapColor(MapColor.STONE_GRAY)
+					.strength(1.5F, 6.0F)
+					.requiresTool()
+					.nonOpaque()
+					.sounds(BlockSoundGroup.STONE)
+					.pistonBehavior(PistonBehavior.DESTROY),
+			true);
+
+	public static final Block VERTICAL_SEAM = register(
+			"vertical_seam",
+			VerticalSeamBlock::new,
 			AbstractBlock.Settings.create()
 					.mapColor(MapColor.STONE_GRAY)
 					.strength(1.5F, 6.0F)
