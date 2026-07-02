@@ -7,11 +7,22 @@ version = project.mod_version
 group = project.maven_group
 
 repositories {
-	// Add repositories to retrieve artifacts from in here.
-	// You should only use this when depending on other mods because
-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
-	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
-	// for more information about repositories.
+	// Modrinth's maven mirrors every mod hosted on Modrinth as
+	// maven.modrinth:<project-slug>:<version-number>. Both Vivecraft and
+	// Lithostitched publish there (the pinned versions were verified against the
+	// target pack's manifest via the Modrinth API). exclusiveContent scopes the
+	// repo to that one group so ordinary dependency lookups never hit it.
+	exclusiveContent {
+		forRepository {
+			maven {
+				name = "Modrinth"
+				url = "https://api.modrinth.com/maven"
+			}
+		}
+		filter {
+			includeGroup "maven.modrinth"
+		}
+	}
 }
 
 loom {
@@ -31,6 +42,32 @@ fabricApi {
 	}
 }
 
+// Vivecraft ships its runtime libraries (night-config, lwjgl-openvr + natives,
+// Java-WebSocket, javaosc, tact-java) as jar-in-jar. This Loom version strips
+// the "jars" declarations while remapping the mod but does NOT extract the
+// nested jars onto the dev runtime classpath, so runClient crashes in
+// Vivecraft's entrypoint with NoClassDefFoundError (nightconfig CommentedConfig).
+// Workaround: pull the nested jars out of the resolved Vivecraft artifact and
+// add them to runtimeOnly. The fabric-* nested jars are excluded -- our own
+// fabric-api dependency already provides those modules.
+configurations {
+	vivecraftForNestedJars {
+		transitive = false
+	}
+}
+
+def vivecraftNestedDir = layout.buildDirectory.dir("vivecraft-nested-jars")
+
+tasks.register("extractVivecraftNestedJars", Sync) {
+	from({ zipTree(configurations.vivecraftForNestedJars.singleFile) }) {
+		include "META-INF/jars/*.jar"
+		exclude "META-INF/jars/fabric-*"
+		eachFile { it.path = it.name }
+		includeEmptyDirs = false
+	}
+	into vivecraftNestedDir
+}
+
 dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -39,6 +76,20 @@ dependencies {
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	// Vivecraft (the climbing hook target) + Lithostitched (worldgen library).
+	// modImplementation = compile against the remapped mod AND have it present in
+	// runClient, so the dev client actually runs with Vivecraft loaded (NONVR mode).
+	modImplementation "maven.modrinth:vivecraft:${project.vivecraft_version}"
+	modImplementation "maven.modrinth:lithostitched:${project.lithostitched_version}"
+
+	// See the extractVivecraftNestedJars comment above. fileTree is evaluated
+	// lazily at classpath-resolution time; builtBy makes the extraction run first.
+	vivecraftForNestedJars "maven.modrinth:vivecraft:${project.vivecraft_version}"
+	runtimeOnly fileTree(vivecraftNestedDir) {
+		include "*.jar"
+		builtBy "extractVivecraftNestedJars"
+	}
 }
 
 processResources {

@@ -216,6 +216,17 @@ This is deliberate prep for a future VR parkour game (grip-based traversal, hand
 - **Debug command `/climbslip`** (`command/ClimbSlipCommand.java`, common, temporary): prints the looked-at block's id, slip value, and handhold/weak_handhold tag membership + loaded entry count. Verifies registry + tags with no headset. Reload data with `/reload`.
 - **Tags updated:** slab_outcrop + vertical_seam → `handhold`; rock_nub stays `weak_handhold`.
 
+**Dependency note (Vivecraft + Lithostitched — resolved, runClient-verified):**
+- Both come from the **Modrinth maven** (`https://api.modrinth.com/maven`, group `maven.modrinth`), added as an `exclusiveContent` repo in `build.gradle`. Coordinates: `maven.modrinth:vivecraft:1.21.11-1.3.9-fabric` and `maven.modrinth:lithostitched:1.7.2-fabric-21.11` (versions in `gradle.properties`).
+- **Versions verified against the target pack:** queried the Modrinth API for "Ryan Cliffords VR Experience 3" v1.0.1 — it pins exactly Vivecraft `1.21.11-1.3.9-fabric` (matches our lock) and Lithostitched `1.7.2-fabric-21.11`.
+- **GOTCHA — Vivecraft jar-in-jar vs this Loom version:** Vivecraft nests its libraries (night-config core+toml, lwjgl-openvr + natives, Java-WebSocket, javaosc, tact-java) under `META-INF/jars/`. Loom 1.17 strips the `jars` declarations when remapping the mod but does NOT put the nested jars on the dev runtime classpath → `runClient` crashes in Vivecraft's entrypoint (`NoClassDefFoundError: com/electronwill/nightconfig/core/CommentedConfig`). Fix in `build.gradle`: an `extractVivecraftNestedJars` Sync task pulls `META-INF/jars/*.jar` (minus `fabric-*`, which our fabric-api dep already provides) out of the resolved artifact into `build/vivecraft-nested-jars/`, wired as a lazy `runtimeOnly fileTree`. Production is unaffected (loader handles JiJ itself there).
+
+**Vivecraft climbing internals (decompiled 1.3.9's `ClimbTracker` with CFR — the map for the hookup):**
+- **The core block-level check is `ClimbTracker.isClimbableBlock(World, BlockPos, BlockState)`**: ladder OR climbable-trapdoor OR vine OR `#minecraft:climbable` OR **`#vivecraft:climbable`** (`ViveBlockTags.VIVECRAFT_CLIMBABLE`). Vivecraft ships `data/vivecraft/tags/block/climbable.json` (containing just `#minecraft:climbable`) — **tags merge across mods, so our blocks become grippable with a pure datagen tag file, NO mixin needed for grip.**
+- This is the NON-equipment path ("realistic climb", `vrSettings.realisticClimbEnabled`, active when hands are free — `hasClimbeyClimbEquipped` is only ORed in). The Climbey claws mode uses a separate `allowed()` blocklist; we correctly leave it alone.
+- **Grab boxes:** for blocks `instanceof HorizontalFacingBlock` (ours are!), the grab zone is a 0.2-thick slab at the cell edge selected by `FACING` — exactly the wall plane our holds hug. Non-facing tagged blocks get the full cell (unless autoGrab). So FACING does double duty: model rotation AND Vivecraft grab side.
+- **Latch state:** `latched[2]` (private), `latchStartController` (public int), `latchStart[2]` (public Vec3d, controller world-pos at grab), `grabDirection[2]` (private, = the block's FACING). Release path: button released → `latched[c]=false`; gravity restored next tick by the `gravityOverride` cleanup in `activeProcess`. A slip mixin can therefore just clear `latched` and let the state machine self-correct.
+
 **Asset-strategy note (user-approved hybrid):** custom protruding geometry can't be expressed by vanilla model templates and the 1.21.11 `BlockStateModelGenerator` builder API is verbose/volatile, so block models + the multipart blockstate are emitted by a standalone Python script (`scripts/gen_rock_nub_models.py`) and Fabric datagen is used only for the loot table. Revisit whether to fold model-gen into Fabric datagen when adding the slab outcrop / vertical seam.
 
 **Tag scaffolding note (block tags — built + datagen-clean):**
@@ -237,7 +248,7 @@ Confirmed too: split client/common source sets ARE set up (`splitEnvironmentSour
 **Next up:**
 - [x] Rock nub built + verified in-game (places on all 4 walls, 3×3 aim positioning, multi-nub clusters, collision, waterlogging).
 - [x] Block tag scaffolding (`handhold`, `weak_handhold`) — datagenned tag JSONs (`client/datagen/ModBlockTagProvider`, keys in `tag/ModBlockTags`). Generated + datagen-clean; verify in-game via F3 block-tag panel.
-- [ ] Add Vivecraft + Lithostitched as dependencies (needs a registry/maven lookup; nothing added to `build.gradle` yet).
+- [x] Add Vivecraft + Lithostitched as dependencies — DONE via the Modrinth maven (see Dependency note below). `runClient` verified: Vivecraft 1.21.11-1.3.9 + Lithostitched 1.7.2 + our mod all load to the title screen together.
 - [x] Generalize the rock-nub pattern to slab outcrop + vertical seam — DONE (shared `AbstractWallHoldBlock` base; see note above). Needs in-game visual check (placement on all 4 walls, aim-snapping, seam stacking).
 - [ ] (Polish, deferred) drops-per-nub + single-nub removal from a cluster.
 - [ ] Nail system (after Vivecraft hookup): start with iron nail flat damage % → add gesture-direction curve → add wooden/netherite as data variants → surface-compat tags last. See Nail section.
