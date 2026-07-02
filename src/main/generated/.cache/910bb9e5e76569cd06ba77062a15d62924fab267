@@ -1,3 +1,4 @@
 // 1.21.11	-999999999-01-01T00:00:00	ClimbAMountainVr/Tags for minecraft:block
 4d0af9d2d75d0b3c984b5fe3c8b1b0805a4d3cb3 data/climbamountainvr/tags/block/handhold.json
 eb9154522bca94f8b3e8a4645dff710c8c44f2a0 data/climbamountainvr/tags/block/weak_handhold.json
+671dfd4769167ded8d98272c6c27b9ced79af021 data/vivecraft/tags/block/climbable.json
