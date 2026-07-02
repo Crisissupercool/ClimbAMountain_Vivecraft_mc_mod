@@ -8,6 +8,8 @@
     {
       "id": "#minecraft:leaves",
       "required": false
-    }
+    },
+    "climbamountainvr:slab_outcrop",
+    "climbamountainvr:vertical_seam"
   ]
 }

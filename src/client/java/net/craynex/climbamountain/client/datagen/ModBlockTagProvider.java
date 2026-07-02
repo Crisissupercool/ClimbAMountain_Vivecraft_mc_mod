@@ -33,7 +33,9 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
 				.add(Blocks.CAVE_VINES_PLANT)
 				.add(Blocks.WEEPING_VINES)
 				.add(Blocks.TWISTING_VINES)
-				.addOptionalTag(BlockTags.LEAVES);
+				.addOptionalTag(BlockTags.LEAVES)
+				.add(ModBlocks.SLAB_OUTCROP)
+				.add(ModBlocks.VERTICAL_SEAM);
 
 		valueLookupBuilder(ModBlockTags.WEAK_HANDHOLD)
 				.add(ModBlocks.ROCK_NUB);

@@ -1,10 +1,14 @@
 package net.craynex.climbamountain;
 
 import net.craynex.climbamountain.block.ModBlocks;
+import net.craynex.climbamountain.command.ClimbSlipCommand;
+import net.craynex.climbamountain.slip.SlipDataLoader;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
+import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 
 import net.minecraft.item.ItemGroups;
+import net.minecraft.resource.ResourceType;
 import net.minecraft.util.Identifier;
 
 import org.slf4j.Logger;
@@ -31,6 +35,13 @@ public class ClimbAMountainVr implements ModInitializer {
 			entries.add(ModBlocks.SLAB_OUTCROP);
 			entries.add(ModBlocks.VERTICAL_SEAM);
 		});
+
+		// SERVER_DATA = datapack side (gameplay data, works on dedicated servers too);
+		// fires on world load and /reload, filling the SlipRegistry from
+		// data/<ns>/climb_slip/*.json across all packs.
+		ResourceLoader.get(ResourceType.SERVER_DATA).registerReloader(id("slip_loader"), new SlipDataLoader());
+
+		ClimbSlipCommand.register();
 
 		LOGGER.info("Climb A Mountain initialized");
 	}
