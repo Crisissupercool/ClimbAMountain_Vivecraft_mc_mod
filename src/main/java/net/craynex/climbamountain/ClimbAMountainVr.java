@@ -3,6 +3,7 @@ package net.craynex.climbamountain;
 import net.craynex.climbamountain.block.ModBlocks;
 import net.craynex.climbamountain.command.ClimbSlipCommand;
 import net.craynex.climbamountain.slip.SlipDataLoader;
+import net.craynex.climbamountain.worldgen.ModFeatures;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
@@ -29,6 +30,7 @@ public class ClimbAMountainVr implements ModInitializer {
 		// Proceed with mild caution.
 
 		ModBlocks.initialize();
+		ModFeatures.initialize();
 
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.NATURAL).register(entries -> {
 			entries.add(ModBlocks.ROCK_NUB);

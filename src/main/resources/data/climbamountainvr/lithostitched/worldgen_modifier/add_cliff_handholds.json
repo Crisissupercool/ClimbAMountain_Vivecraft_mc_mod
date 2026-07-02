@@ -1,0 +1,6 @@
+{
+	"type": "lithostitched:add_features",
+	"biomes": "#minecraft:is_mountain",
+	"features": "climbamountainvr:cliff_handholds",
+	"step": "local_modifications"
+}
